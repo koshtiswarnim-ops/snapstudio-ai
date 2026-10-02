@@ -50,8 +50,9 @@ export const ProfilePage: React.FC = () => {
             <h3 className="font-heading font-bold text-lg text-ink">{user?.name}</h3>
             <p className="font-mono-label text-[10px] text-ink-muted">{user?.email}</p>
           </div>
-          <div className="pt-3 border-t border-hairline font-mono-label text-[10px] text-accent-cyan font-bold">
-            PLAN: {user?.plan?.toUpperCase()} • {availableCredits} CREDITS
+          <div className="pt-3 border-t border-hairline font-mono-label text-[10px] text-accent-cyan font-bold flex items-center justify-center space-x-1.5">
+            <Shield className="w-3.5 h-3.5 text-accent-cyan" />
+            <span>PLAN: {user?.plan?.toUpperCase()} • {availableCredits} CREDITS</span>
           </div>
         </div>
 
@@ -60,22 +61,28 @@ export const ProfilePage: React.FC = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="font-mono-label text-[10px] text-ink-secondary">FULL NAME</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded bg-ground-tertiary border border-hairline text-ink font-sans text-sm focus:outline-none focus:border-accent-cyan"
-              />
+              <div className="relative">
+                <User className="w-4 h-4 absolute left-3 top-3 text-ink-muted" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded bg-ground-tertiary border border-hairline text-ink font-sans text-sm focus:outline-none focus:border-accent-cyan"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="font-mono-label text-[10px] text-ink-secondary">EMAIL ADDRESS</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded bg-ground-tertiary border border-hairline text-ink font-sans text-sm focus:outline-none focus:border-accent-cyan"
-              />
+              <div className="relative">
+                <Mail className="w-4 h-4 absolute left-3 top-3 text-ink-muted" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded bg-ground-tertiary border border-hairline text-ink font-sans text-sm focus:outline-none focus:border-accent-cyan"
+                />
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ShieldCheck, Cpu, Sliders, CheckCircle2, Zap, Layers, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ParticleHeroCanvas } from '../components/ParticleHeroCanvas';
 import { MaskedText } from '../components/MaskedText';
 import { Card } from '../components/Card';

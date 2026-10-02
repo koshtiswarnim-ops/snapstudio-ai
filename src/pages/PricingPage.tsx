@@ -156,21 +156,51 @@ export const PricingPage: React.FC = () => {
               <button
                 onClick={() => handlePurchase(plan)}
                 disabled={loadingPlan === plan.id}
-                className={`w-full py-3.5 rounded-scientific font-mono-label font-bold text-xs transition-all ${
+                className={`w-full py-3.5 rounded-scientific font-mono-label font-bold text-xs transition-all flex items-center justify-center space-x-2 ${
                   plan.recommended
                     ? 'bg-accent-cyan text-ground hover:bg-accent-cyan/90 shadow-md'
                     : 'bg-ground-tertiary border border-hairline text-ink hover:border-accent-cyan/50'
                 }`}
               >
-                {loadingPlan === plan.id
-                  ? 'INITIATING RAZORPAY...'
-                  : plan.priceINR === 0
-                  ? 'GET STARTED FREE'
-                  : `PURCHASE FOR ₹${plan.priceINR}`}
+                {plan.recommended && <Sparkles className="w-3.5 h-3.5" />}
+                <span>
+                  {loadingPlan === plan.id
+                    ? 'INITIATING RAZORPAY...'
+                    : plan.priceINR === 0
+                    ? 'GET STARTED FREE'
+                    : `PURCHASE FOR ₹${plan.priceINR}`}
+                </span>
               </button>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Security & Guarantee Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-hairline font-mono-label text-[10.5px]">
+        <div className="flex items-center space-x-3 p-4 rounded-scientific bg-ground-secondary border border-hairline">
+          <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="space-y-0.5">
+            <div className="text-ink font-bold">256-BIT ENCRYPTED</div>
+            <div className="text-ink-muted text-[9.5px]">Razorpay PCI-DSS certified gateway</div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3 p-4 rounded-scientific bg-ground-secondary border border-hairline">
+          <Zap className="w-5 h-5 text-accent-cyan shrink-0" />
+          <div className="space-y-0.5">
+            <div className="text-ink font-bold">INSTANT CREDIT TOP-UP</div>
+            <div className="text-ink-muted text-[9.5px]">Credits credited instantly upon verification</div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3 p-4 rounded-scientific bg-ground-secondary border border-hairline">
+          <CreditCard className="w-5 h-5 text-accent-violet shrink-0" />
+          <div className="space-y-0.5">
+            <div className="text-ink font-bold">ALL PAYMENT MODES</div>
+            <div className="text-ink-muted text-[9.5px]">UPI, Credit/Debit cards & Netbanking</div>
+          </div>
+        </div>
       </div>
     </div>
   );

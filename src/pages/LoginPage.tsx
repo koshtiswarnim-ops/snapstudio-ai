@@ -84,9 +84,10 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)]"
+            className="w-full py-3 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)] flex items-center justify-center space-x-2"
           >
-            SIGN IN
+            <span>SIGN IN</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 

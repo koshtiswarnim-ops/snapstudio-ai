@@ -36,14 +36,24 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
     []
   );
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    handleMove(e.touches[0].clientX);
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    handleMove(e.clientX);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     handleMove(e.clientX);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
   };
 
   const getAspectClass = () => {
@@ -62,7 +72,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
       {/* Controls Bar */}
       <div className="flex items-center justify-between border-b border-hairline pb-3">
         <div className="flex items-center space-x-2 font-mono-label text-ink-secondary">
-          <span className="inline-block w-2 h-2 rounded-full bg-accent-cyan animate-pulse"></span>
+          <Eye className="w-3.5 h-3.5 text-accent-cyan" />
           <span>COMPARE MODE:</span>
           <button
             onClick={() => setViewMode('slider')}
@@ -112,14 +122,11 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
       {viewMode === 'slider' ? (
         <div
           ref={containerRef}
-          onMouseDown={() => setIsDragging(true)}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
-          onMouseMove={handleMouseMove}
-          onTouchStart={() => setIsDragging(true)}
-          onTouchEnd={() => setIsDragging(false)}
-          onTouchMove={handleTouchMove}
-          className={`relative w-full overflow-hidden rounded-scientific-lg border border-hairline bg-ground-secondary select-none cursor-ew-resize ${getAspectClass()}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`relative w-full overflow-hidden rounded-scientific-lg border border-hairline bg-ground-secondary select-none cursor-ew-resize touch-none ${getAspectClass()}`}
         >
           {/* AI Generated Image (Right/Background) */}
           <img
@@ -129,17 +136,12 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
           />
 
           {/* Original Image (Left/Clipped Foreground) */}
-          <div
-            className="absolute inset-0 overflow-hidden pointer-events-none"
-            style={{ width: `${sliderPos}%` }}
-          >
-            <img
-              src={originalUrl}
-              alt="Original Product Photo"
-              className="absolute inset-0 w-full h-full object-cover max-w-none"
-              style={{ width: containerRef.current?.clientWidth || '100%' }}
-            />
-          </div>
+          <img
+            src={originalUrl}
+            alt="Original Product Photo"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+          />
 
           {/* Split Line handle */}
           <div
@@ -152,10 +154,10 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
           </div>
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 px-2 py-1 rounded bg-ground/80 backdrop-blur border border-hairline font-mono-label text-ink-secondary text-[9px]">
+          <div className="absolute top-3 left-3 px-2 py-1 rounded bg-ground/80 backdrop-blur border border-hairline font-mono-label text-ink-secondary text-[9px] pointer-events-none">
             ORIGINAL PHOTO
           </div>
-          <div className="absolute top-3 right-3 px-2 py-1 rounded bg-accent-cyan/15 backdrop-blur border border-accent-cyan/30 font-mono-label text-accent-cyan text-[9px]">
+          <div className="absolute top-3 right-3 px-2 py-1 rounded bg-accent-cyan/15 backdrop-blur border border-accent-cyan/30 font-mono-label text-accent-cyan text-[9px] pointer-events-none">
             AI STUDIO RENDER
           </div>
         </div>

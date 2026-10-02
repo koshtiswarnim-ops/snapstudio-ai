@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { History, Download, RefreshCw, Filter, Search, Image as ImageIcon } from 'lucide-react';
 import { getInitialMockGenerations } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
-import { BackgroundStyle } from '../types';
 
 export const HistoryPage: React.FC = () => {
   const generations = getInitialMockGenerations();
   const [filterStyle, setFilterStyle] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const navigate = useNavigate();
 
   const filteredGenerations = generations.filter((g) => {
-    if (filterStyle === 'all') return true;
-    return g.selected_style === filterStyle;
+    const matchesStyle = filterStyle === 'all' || g.selected_style === filterStyle;
+    const matchesSearch =
+      !searchQuery ||
+      g.selected_style.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      g.id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStyle && matchesSearch;
   });
 
   return (
@@ -20,33 +24,47 @@ export const HistoryPage: React.FC = () => {
       {/* Header & Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-hairline pb-4">
         <div>
-          <div className="font-mono-label text-[10px] text-accent-cyan mb-1">
-            ACCOUNT VAULT // GENERATION HISTORY
+          <div className="font-mono-label text-[10px] text-accent-cyan mb-1 flex items-center space-x-1.5">
+            <History className="w-3 h-3" />
+            <span>ACCOUNT VAULT // GENERATION HISTORY</span>
           </div>
           <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-ink tracking-tightest">
             Generated Studio Archive
           </h1>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center space-x-2 font-mono-label text-[10px] overflow-x-auto pb-1">
-          <span className="text-ink-muted flex items-center space-x-1 shrink-0">
-            <Filter className="w-3 h-3" />
-            <span>FILTER:</span>
-          </span>
-          {['all', 'clean-white', 'light-neutral', 'soft-studio', 'minimal-premium'].map((style) => (
-            <button
-              key={style}
-              onClick={() => setFilterStyle(style)}
-              className={`px-2.5 py-1 rounded transition-colors uppercase shrink-0 ${
-                filterStyle === style
-                  ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 font-bold'
-                  : 'bg-ground-secondary border border-hairline text-ink-muted hover:text-ink'
-              }`}
-            >
-              {style.replace('-', ' ')}
-            </button>
-          ))}
+        {/* Filter Pills & Search */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-ink-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search style or ID..."
+              className="pl-8 pr-3 py-1.5 rounded-scientific bg-ground-secondary border border-hairline text-ink font-mono text-xs focus:outline-none focus:border-accent-cyan w-44"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 font-mono-label text-[10px] overflow-x-auto pb-1 max-w-full">
+            <span className="text-ink-muted flex items-center space-x-1 shrink-0">
+              <Filter className="w-3 h-3" />
+              <span>FILTER:</span>
+            </span>
+            {['all', 'clean-white', 'light-neutral', 'soft-studio', 'minimal-premium'].map((style) => (
+              <button
+                key={style}
+                onClick={() => setFilterStyle(style)}
+                className={`px-2.5 py-1 rounded transition-colors uppercase shrink-0 ${
+                  filterStyle === style
+                    ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40 font-bold'
+                    : 'bg-ground-secondary border border-hairline text-ink-muted hover:text-ink'
+                }`}
+              >
+                {style.replace('-', ' ')}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
