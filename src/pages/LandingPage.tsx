@@ -48,27 +48,27 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Centered Hero Content */}
-          <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-6 my-auto">
+          <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-5 my-auto">
             {/* Monospaced Tag */}
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-scientific bg-ground-secondary border border-hairline font-mono-label text-[10px] text-accent-cyan">
               <Sparkles className="w-3 h-3 text-accent-cyan" />
-              <span>ONE-CLICK E-COMMERCE AI PHOTOGRAPHY</span>
+              <span>AI E-COMMERCE PHOTOGRAPHY</span>
             </div>
 
             {/* Headline Built from Masked Lines */}
-            <div className="font-heading font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tightest leading-[1.05] text-ink">
+            <div className="font-heading font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tightest leading-[1.1] text-ink">
               <MaskedText
                 lines={[
-                  "Turn ordinary product photos",
-                  "into professional studio images.",
+                  "Studio Product Photos",
+                  "In Seconds",
                 ]}
                 lineClassName="text-ink"
               />
             </div>
 
             {/* Supporting Lede */}
-            <p className="max-w-2xl mx-auto text-ink-secondary text-base sm:text-lg font-sans font-normal leading-relaxed">
-              Upload a simple smartphone photo. Our AI preserves your original product shape, branding, and details while placing it into high-converting e-commerce studio setups.
+            <p className="max-w-xl mx-auto text-ink-secondary text-sm sm:text-base font-sans font-normal leading-relaxed">
+              Transform everyday product photos into high-converting studio imagery. Preserves exact labels, textures, and details with zero prompting.
             </p>
 
             {/* Action Buttons */}
