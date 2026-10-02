@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    background-color: #06070A;
+    color: #E6EAF0;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  /* Custom scientific scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #06070A;
+    border-left: 1px solid rgba(230, 234, 240, 0.08);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(230, 234, 240, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4FD8E8;
+  }
+}
+
+@layer utilities {
+  /* Hairline Border Utilities */
+  .border-hairline {
+    border-color: rgba(230, 234, 240, 0.11);
+  }
+  .divide-hairline > * + * {
+    border-color: rgba(230, 234, 240, 0.11);
+  }
+
+  /* Scientific Typography */
+  .font-heading {
+    font-family: 'Manrope', sans-serif;
+    letter-spacing: -0.035em;
+  }
+  .font-mono-label {
+    font-family: 'Chivo Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  
+  /* Glass Backdrop */
+  .backdrop-scientific {
+    background: rgba(6, 7, 10, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Grid lines background pattern */
+  .bg-scientific-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(230, 234, 240, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(230, 234, 240, 0.03) 1px, transparent 1px);
+  }
+}
+
+/* Masked Line Reveal CSS Animations */
+.masked-line-container {
+  overflow: hidden;
+  display: block;
+}
+
+.masked-line-inner {
+  display: block;
+  transform: translateY(120%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.masked-line-container.is-revealed .masked-line-inner {
+  transform: translateY(0%);
+}
+
+/* Perspective fan card container */
+.perspective-container {
+  perspective: 900px;
+}
+
+/* Scroll Parallax clipping container requirement from spec */
+.parallax-band-container {
+  overflow: clip !important; /* CRITICAL: overflow:clip allows position:sticky to work without breaking layout */
+}

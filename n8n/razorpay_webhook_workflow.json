@@ -1,0 +1,69 @@
+{
+  "name": "SnapStudio AI - Razorpay Payment Webhook Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "razorpay-payment-webhook",
+        "options": {}
+      },
+      "id": "razorpay-webhook",
+      "name": "Razorpay Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.event }}",
+              "value2": "payment.captured"
+            }
+          ]
+        }
+      },
+      "id": "check-event-type",
+      "name": "Check Payment Captured Event",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE public.credits SET available_credits = available_credits + 25 WHERE user_id = '{{ $json.body.payload.payment.entity.notes.user_id }}';"
+      },
+      "id": "update-supabase-credits",
+      "name": "Update User Credits in Supabase",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [560, 280]
+    }
+  ],
+  "connections": {
+    "Razorpay Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Payment Captured Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Payment Captured Event": {
+      "main": [
+        [
+          {
+            "node": "Update User Credits in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "name": "SnapStudio AI - Product Photography Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-product-image",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook (React App)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.originalImageUrl }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "validate-payload",
+      "name": "Validate Request Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/edits",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"image\": \"{{ $json.body.originalImageUrl }}\",\n  \"prompt\": \"Professional studio product photography of product, clean {{ $json.body.selectedStyle }} background, soft diffuse lighting, studio pedestal, 8k e-commerce photo\",\n  \"n\": 1,\n  \"size\": \"1024x1024\"\n}"
+      },
+      "id": "ai-provider-call",
+      "name": "Call AI Image Provider API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [560, 280]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"generatedImageUrl\": \"{{ $json.data[0].url }}\",\n  \"generationId\": \"gen_n8n_{{ $now.toMillis() }}\"\n}"
+      },
+      "id": "respond-success",
+      "name": "Respond to Frontend",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 280]
+    }
+  ],
+  "connections": {
+    "Webhook (React App)": {
+      "main": [
+        [
+          {
+            "node": "Validate Request Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request Payload": {
+      "main": [
+        [
+          {
+            "node": "Call AI Image Provider API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call AI Image Provider API": {
+      "main": [
+        [
+          {
+            "node": "Respond to Frontend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
