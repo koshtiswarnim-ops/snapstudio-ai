@@ -13,8 +13,8 @@ export const BillingPage: React.FC = () => {
     {
       id: 'pay_M90129481',
       order_id: 'order_89218491',
-      amount: 1499,
-      credits: 60,
+      amount: 499,
+      credits: 80,
       plan: 'Pro Studio Monthly',
       status: 'paid',
       date: '2026-09-28',
@@ -22,9 +22,9 @@ export const BillingPage: React.FC = () => {
     {
       id: 'pay_M77192841',
       order_id: 'order_77192811',
-      amount: 799,
+      amount: 199,
       credits: 25,
-      plan: '25 Credit Pack',
+      plan: 'Starter Pack',
       status: 'paid',
       date: '2026-09-14',
     },

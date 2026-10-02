@@ -14,40 +14,42 @@ const PRICING_PLANS: PricingPlan[] = [
     credits: 5,
     features: [
       '5 Free Initial Generation Credits',
-      'Standard Quality Processing',
+      'Standard Quality AI Processing',
       'Basic Background Presets',
-      '1:1 Aspect Ratio',
-      'Standard Download Resolution',
+      '1:1 Square Aspect Ratio',
+      'Instant Download & Storage',
+    ],
+  },
+  {
+    id: 'credit_pack_25',
+    name: 'STARTER PACK',
+    priceINR: 199,
+    credits: 25,
+    badge: 'AFFORDABLE PICK',
+    features: [
+      '25 On-Demand Generation Credits',
+      'Only ~₹8 per studio image',
+      'Credits Never Expire',
+      'All 4 Studio Background Presets',
+      'All Aspect Ratios (1:1, 4:5, 16:9)',
+      'High-Resolution Studio Renders',
     ],
   },
   {
     id: 'pro_monthly',
     name: 'PRO STUDIO',
-    priceINR: 1499,
-    credits: 60,
-    badge: 'MOST POPULAR',
+    priceINR: 499,
+    credits: 80,
+    badge: 'BEST VALUE (SAVE 70%)',
     recommended: true,
     features: [
-      '60 High-Resolution Credits / Month',
-      'Priority n8n Tensor Processing',
+      '80 High-Resolution Credits / Month',
+      'Only ~₹6.2 per studio image',
+      'Priority Tensor Processing',
       'All 4 Studio Background Presets',
       'All Aspect Ratios (1:1, 4:5, 16:9)',
       '4K Ultra-HD Resolution Exports',
       'Full History Vault & Re-Generations',
-    ],
-  },
-  {
-    id: 'credit_pack_25',
-    name: '25 CREDIT PACK',
-    priceINR: 799,
-    credits: 25,
-    badge: 'PAY AS YOU GO',
-    features: [
-      '25 On-Demand Generation Credits',
-      'Never Expires',
-      'High-Resolution Studio Renders',
-      'All Background Presets & Aspect Ratios',
-      'Instant Download & Storage',
     ],
   },
 ];
@@ -129,14 +131,22 @@ export const PricingPage: React.FC = () => {
               {/* Plan Title & Price */}
               <div className="space-y-2 border-b border-hairline pb-6">
                 <h3 className="font-mono-label text-xs text-ink-muted uppercase">{plan.name}</h3>
-                <div className="flex items-baseline space-x-1">
+                <div className="flex items-baseline space-x-2">
                   <span className="font-mono text-4xl font-bold text-ink">
                     ₹{plan.priceINR.toLocaleString('en-IN')}
                   </span>
-                  {plan.priceINR > 0 && <span className="font-mono-label text-[10px] text-ink-muted">/ INC TAX</span>}
+                  {plan.id === 'credit_pack_25' && (
+                    <span className="font-mono text-sm text-ink-muted line-through">₹799</span>
+                  )}
+                  {plan.id === 'pro_monthly' && (
+                    <span className="font-mono text-sm text-ink-muted line-through">₹1,499</span>
+                  )}
+                  {plan.priceINR > 0 && <span className="font-mono-label text-[10px] text-ink-muted">/ ONE TIME</span>}
                 </div>
                 <div className="font-mono-label text-[11px] text-accent-cyan font-bold pt-1">
-                  INCLUDES {plan.credits} CREDITS
+                  {plan.credits > 0
+                    ? `INCLUDES ${plan.credits} CREDITS (₹${(plan.priceINR / plan.credits).toFixed(1)}/PHOTO)`
+                    : '5 FREE TRIAL CREDITS'}
                 </div>
               </div>
 
