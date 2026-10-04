@@ -12,8 +12,8 @@ interface AuthRequiredModalProps {
 export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
   isOpen,
   onClose,
-  title = 'Create an Account First',
-  description = 'Please create a free account or sign in to upload product photos and generate professional e-commerce studio images. Claim 5 free generation credits upon signing up!',
+  title = 'Create Your Free Account',
+  description = 'Please create a free account or sign in to upload product photos and generate professional e-commerce studio images. Claim 5 free generation credits when you sign up!',
 }) => {
   if (!isOpen) return null;
 
