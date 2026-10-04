@@ -21,19 +21,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     async function initAuth() {
       if (isSupabaseConfigured && supabase) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Seller',
-            avatar_url: session.user.user_metadata?.avatar_url,
-            plan: 'pro',
-            created_at: session.user.created_at,
-          });
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const sessionUser: UserProfile = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Seller',
+              avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+              plan: 'pro',
+              created_at: session.user.created_at || new Date().toISOString(),
+            };
+            setUser(sessionUser);
+            localStorage.setItem('snapstudio_user_session', JSON.stringify(sessionUser));
+          } else {
+            const mock = getInitialMockUser();
+            if (mock) setUser(mock);
+          }
+        } catch (e) {
+          const mock = getInitialMockUser();
+          if (mock) setUser(mock);
         }
       } else {
-        // Mock Auth fallback
         setUser(getInitialMockUser());
       }
       setLoading(false);
@@ -44,16 +53,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSupabaseConfigured && supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
-          setUser({
+          const sessionUser: UserProfile = {
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.name || 'Seller',
-            avatar_url: session.user.user_metadata?.avatar_url,
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Seller',
+            avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
             plan: 'pro',
-            created_at: session.user.created_at,
-          });
-        } else {
+            created_at: session.user.created_at || new Date().toISOString(),
+          };
+          setUser(sessionUser);
+          localStorage.setItem('snapstudio_user_session', JSON.stringify(sessionUser));
+        } else if (_event === 'SIGNED_OUT') {
           setUser(null);
+          localStorage.removeItem('snapstudio_user_session');
         }
       });
       return () => subscription.unsubscribe();
