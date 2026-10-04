@@ -6,6 +6,7 @@ import { useCredits } from '../context/CreditContext';
 import { fetchGenerationsFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
 import { GenerationRecord } from '../types';
+import { downloadImageFile } from '../utils/download';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -132,14 +133,13 @@ export const DashboardPage: React.FC = () => {
                   })}
                 </div>
 
-                <a
-                  href={gen.generated_image_url || gen.original_image_url}
-                  download
+                <button
+                  onClick={() => downloadImageFile(gen.generated_image_url || gen.original_image_url, `snapstudio_${gen.selected_style}_${gen.id}.jpg`)}
                   className="flex items-center space-x-1 px-3 py-1.5 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan text-ink-secondary hover:text-accent-cyan font-mono-label text-[10px] transition-colors"
                 >
                   <Download className="w-3 h-3" />
                   <span>DOWNLOAD</span>
-                </a>
+                </button>
               </div>
             </div>
           ))}

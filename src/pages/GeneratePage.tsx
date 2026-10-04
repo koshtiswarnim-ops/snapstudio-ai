@@ -9,6 +9,7 @@ import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { StatusBadge } from '../components/StatusBadge';
 import { AuthRequiredModal } from '../components/AuthRequiredModal';
 import { saveGenerationRecordToSupabase } from '../services/supabase';
+import { downloadImageFile } from '../utils/download';
 
 const BACKGROUND_STYLES: { id: BackgroundStyle; name: string; desc: string; tag: string }[] = [
   { id: 'clean-white', name: 'Clean White', desc: 'Compliant 100% pure white backdrop for Amazon & Flipkart', tag: 'AMAZON SPEC' },
@@ -168,14 +169,9 @@ export const GeneratePage: React.FC = () => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!resultImage) return;
-    const a = document.createElement('a');
-    a.href = resultImage;
-    a.download = `snapstudio_${selectedStyle}_${Date.now()}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    await downloadImageFile(resultImage, `snapstudio_${selectedStyle}_${Date.now()}.jpg`);
   };
 
   return (

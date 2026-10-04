@@ -5,6 +5,7 @@ import { GenerationRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from './StatusBadge';
 import { BeforeAfterSlider } from './BeforeAfterSlider';
+import { downloadImageFile } from '../utils/download';
 
 interface HistoryDrawerProps {
   isOpen: boolean;
@@ -168,14 +169,13 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                         <span>COMPARE</span>
                       </button>
 
-                      <a
-                        href={item.generated_image_url || item.original_image_url}
-                        download
+                      <button
+                        onClick={() => downloadImageFile(item.generated_image_url || item.original_image_url, `snapstudio_${item.selected_style}_${item.id}.jpg`)}
                         className="px-2.5 py-1 rounded bg-accent-cyan text-ground font-bold hover:bg-accent-cyan/90 transition-colors flex items-center space-x-1"
                       >
                         <Download className="w-3 h-3" />
                         <span>DOWNLOAD</span>
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -209,10 +209,10 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                 generatedUrl={selectedInspectRecord.generated_image_url || selectedInspectRecord.original_image_url}
                 aspectRatio={selectedInspectRecord.aspect_ratio}
                 onDownload={() => {
-                  const a = document.createElement('a');
-                  a.href = selectedInspectRecord.generated_image_url || selectedInspectRecord.original_image_url;
-                  a.download = `snapstudio_${selectedInspectRecord.selected_style}_${Date.now()}.jpg`;
-                  a.click();
+                  downloadImageFile(
+                    selectedInspectRecord.generated_image_url || selectedInspectRecord.original_image_url,
+                    `snapstudio_${selectedInspectRecord.selected_style}_${Date.now()}.jpg`
+                  );
                 }}
               />
             </div>

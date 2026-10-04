@@ -5,6 +5,7 @@ import { fetchGenerationsFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
 import { BackgroundStyle, GenerationRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { downloadImageFile } from '../utils/download';
 
 export const HistoryPage: React.FC = () => {
   const { user } = useAuth();
@@ -140,14 +141,13 @@ export const HistoryPage: React.FC = () => {
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
-                  <a
-                    href={item.generated_image_url || item.original_image_url}
-                    download
+                  <button
+                    onClick={() => downloadImageFile(item.generated_image_url || item.original_image_url, `snapstudio_${item.selected_style}_${item.id}.jpg`)}
                     className="flex items-center space-x-1 px-2.5 py-1 rounded bg-accent-cyan text-ground font-bold hover:bg-accent-cyan/90 transition-colors"
                   >
                     <Download className="w-3 h-3" />
                     <span>DOWNLOAD</span>
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
