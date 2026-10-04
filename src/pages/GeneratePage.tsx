@@ -37,7 +37,16 @@ export const GeneratePage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleFileSelect = async (file: File) => {
     // Validate file type & size (10 MB max)
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
       setErrorMessage('Unsupported file format. Please upload JPG, PNG, or WEBP.');
@@ -50,8 +59,13 @@ export const GeneratePage: React.FC = () => {
 
     setErrorMessage('');
     setSelectedFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setOriginalPreviewUrl(objectUrl);
+    try {
+      const base64DataUrl = await fileToBase64(file);
+      setOriginalPreviewUrl(base64DataUrl);
+    } catch (e) {
+      const objectUrl = URL.createObjectURL(file);
+      setOriginalPreviewUrl(objectUrl);
+    }
     setStatus('idle');
     setResultImage('');
   };

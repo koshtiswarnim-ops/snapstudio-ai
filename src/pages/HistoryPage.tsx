@@ -102,6 +102,9 @@ export const HistoryPage: React.FC = () => {
                       src={item.original_image_url}
                       alt="Original Input"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
+                      }}
                     />
                   </div>
                 </div>

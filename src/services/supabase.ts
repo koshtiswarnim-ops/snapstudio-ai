@@ -48,10 +48,23 @@ export const getInitialMockCredits = (userId: string): UserCredits => {
   return defaultCredits;
 };
 
+const DEFAULT_FALLBACK_ORIGINAL = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
+
 export const getInitialMockGenerations = (): GenerationRecord[] => {
   const stored = localStorage.getItem(LOCAL_STORAGE_KEY_GENERATIONS);
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) { /* ignore */ }
+    try {
+      const parsed: GenerationRecord[] = JSON.parse(stored);
+      // Replace expired blob: URLs with high-quality product image fallback
+      const sanitized = parsed.map((item) => ({
+        ...item,
+        original_image_url:
+          item.original_image_url && item.original_image_url.startsWith('blob:')
+            ? DEFAULT_FALLBACK_ORIGINAL
+            : item.original_image_url || DEFAULT_FALLBACK_ORIGINAL,
+      }));
+      return sanitized;
+    } catch (e) { /* ignore */ }
   }
   const samples: GenerationRecord[] = [
     {
@@ -155,7 +168,14 @@ export const fetchGenerationsFromSupabase = async (userId?: string): Promise<Gen
       }
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
-        return data as GenerationRecord[];
+        const sanitized = data.map((item: any) => ({
+          ...item,
+          original_image_url:
+            item.original_image_url && item.original_image_url.startsWith('blob:')
+              ? DEFAULT_FALLBACK_ORIGINAL
+              : item.original_image_url || DEFAULT_FALLBACK_ORIGINAL,
+        }));
+        return sanitized as GenerationRecord[];
       }
     } catch (err) {
       console.warn('Supabase DB Fetch error:', err);
