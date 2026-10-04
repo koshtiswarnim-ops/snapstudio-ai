@@ -65,7 +65,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
     } else {
       const mock = getInitialMockUser();
-      const updated = { ...mock, email };
+      const updated: UserProfile = {
+        id: mock?.id || `usr_${Date.now()}`,
+        email,
+        name: mock?.name || email.split('@')[0],
+        avatar_url: mock?.avatar_url,
+        plan: mock?.plan || 'pro',
+        created_at: mock?.created_at || new Date().toISOString(),
+      };
       setUser(updated);
       localStorage.setItem('snapstudio_user_session', JSON.stringify(updated));
     }

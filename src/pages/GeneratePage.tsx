@@ -7,6 +7,7 @@ import { BackgroundStyle, AspectRatio, QualityMode, GenerationStatus, Generation
 import { triggerAIGeneration } from '../services/n8n';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { StatusBadge } from '../components/StatusBadge';
+import { AuthRequiredModal } from '../components/AuthRequiredModal';
 import { saveGenerationRecordToSupabase } from '../services/supabase';
 
 const BACKGROUND_STYLES: { id: BackgroundStyle; name: string; desc: string; tag: string }[] = [
@@ -27,6 +28,7 @@ export const GeneratePage: React.FC = () => {
   const [selectedStyle, setSelectedStyle] = useState<BackgroundStyle>('clean-white');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
   const [quality, setQuality] = useState<QualityMode>('high');
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Generation Processing State
   const [status, setStatus] = useState<GenerationStatus>('idle');
@@ -46,7 +48,19 @@ export const GeneratePage: React.FC = () => {
     });
   };
 
+  const triggerUploadClick = () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const handleFileSelect = async (file: File) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     // Validate file type & size (10 MB max)
     if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
       setErrorMessage('Unsupported file format. Please upload JPG, PNG, or WEBP.');
@@ -76,12 +90,21 @@ export const GeneratePage: React.FC = () => {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
   const handleStartGeneration = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (!originalPreviewUrl) {
       setErrorMessage('Please upload a product photo first.');
       return;
@@ -203,7 +226,7 @@ export const GeneratePage: React.FC = () => {
             <div
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={triggerUploadClick}
               className={`relative border-2 border-dashed rounded-scientific-lg p-6 text-center cursor-pointer transition-all ${
                 originalPreviewUrl
                   ? 'border-accent-cyan/50 bg-ground-secondary'
@@ -436,6 +459,12 @@ export const GeneratePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Account Creation Prompt Modal */}
+      <AuthRequiredModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };

@@ -5,6 +5,8 @@ import { CreditProvider } from './context/CreditContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
+import { ProtectedRoute } from './components/ProtectedRoute';
+
 import { LandingPage } from './pages/LandingPage';
 import { GeneratePage } from './pages/GeneratePage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -29,11 +31,11 @@ export function App() {
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/generate" element={<GeneratePage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
                 <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/billing" element={<BillingPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />

@@ -15,21 +15,12 @@ const LOCAL_STORAGE_KEY_USER = 'snapstudio_user_session';
 const LOCAL_STORAGE_KEY_CREDITS = 'snapstudio_user_credits';
 const LOCAL_STORAGE_KEY_GENERATIONS = 'snapstudio_user_generations';
 
-export const getInitialMockUser = (): UserProfile => {
+export const getInitialMockUser = (): UserProfile | null => {
   const stored = localStorage.getItem(LOCAL_STORAGE_KEY_USER);
   if (stored) {
     try { return JSON.parse(stored); } catch (e) { /* ignore */ }
   }
-  const defaultUser: UserProfile = {
-    id: 'usr_demo_8829',
-    email: 'pro.seller@snapstudio.ai',
-    name: 'Alex Vance',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    plan: 'pro',
-    created_at: new Date().toISOString(),
-  };
-  localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify(defaultUser));
-  return defaultUser;
+  return null;
 };
 
 export const getInitialMockCredits = (userId: string): UserCredits => {
