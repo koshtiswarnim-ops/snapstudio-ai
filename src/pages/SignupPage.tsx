@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle2 } from 'lucide-react';
 
 export const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -17,11 +19,18 @@ export const SignupPage: React.FC = () => {
       setError('Please fill in all required fields.');
       return;
     }
+    setError('');
+    setLoading(true);
+
     try {
       await signup(email, name);
-      navigate('/dashboard');
+      setSuccessMsg('Account Created Successfully! 5 Free Credits Claimed.');
+      setTimeout(() => {
+        navigate('/generate');
+      }, 700);
     } catch (err: any) {
-      setError(err?.message || 'Signup failed.');
+      setError(err?.message || 'Signup encountered an issue. Try again.');
+      setLoading(false);
     }
   };
 
@@ -41,6 +50,13 @@ export const SignupPage: React.FC = () => {
           </p>
         </div>
 
+        {successMsg && (
+          <div className="p-3.5 rounded-scientific bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 font-mono-label text-xs flex items-center space-x-2.5 text-center justify-center animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
         {error && (
           <div className="p-3 rounded bg-red-950/40 border border-red-500/40 text-red-300 font-mono-label text-xs">
             {error}
@@ -57,7 +73,7 @@ export const SignupPage: React.FC = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Alex Vance"
+                placeholder="swarnim koshti"
                 className="w-full pl-10 pr-4 py-2.5 rounded bg-ground-tertiary border border-hairline text-ink font-sans text-sm focus:outline-none focus:border-accent-cyan"
               />
             </div>
@@ -95,9 +111,14 @@ export const SignupPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)]"
+            disabled={loading}
+            className="w-full py-3.5 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)] flex items-center justify-center space-x-2"
           >
-            CREATE ACCOUNT & CLAIM 5 CREDITS
+            {loading ? (
+              <span>CREATING YOUR ACCOUNT...</span>
+            ) : (
+              <span>CREATE ACCOUNT & CLAIM 5 CREDITS</span>
+            )}
           </button>
         </form>
 

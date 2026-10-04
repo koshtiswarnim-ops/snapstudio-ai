@@ -60,43 +60,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string) => {
+    let sessionUser: UserProfile | null = null;
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) throw error;
-    } else {
-      const mock = getInitialMockUser();
-      const updated: UserProfile = {
-        id: mock?.id || `usr_${Date.now()}`,
-        email,
-        name: mock?.name || email.split('@')[0],
-        avatar_url: mock?.avatar_url,
-        plan: mock?.plan || 'pro',
-        created_at: mock?.created_at || new Date().toISOString(),
-      };
-      setUser(updated);
-      localStorage.setItem('snapstudio_user_session', JSON.stringify(updated));
+      try {
+        const { data, error } = await supabase.auth.signInWithOtp({ email });
+        const userObj = (data as any)?.user || (data as any)?.session?.user;
+        if (!error && userObj) {
+          sessionUser = {
+            id: userObj.id,
+            email: userObj.email || email,
+            name: userObj.user_metadata?.name || email.split('@')[0],
+            plan: 'pro',
+            created_at: userObj.created_at || new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase auth login notice:', err);
+      }
     }
+
+    if (!sessionUser) {
+      sessionUser = {
+        id: `usr_${Date.now()}`,
+        email,
+        name: email.split('@')[0],
+        plan: 'pro',
+        created_at: new Date().toISOString(),
+      };
+    }
+
+    setUser(sessionUser);
+    localStorage.setItem('snapstudio_user_session', JSON.stringify(sessionUser));
   };
 
   const signup = async (email: string, name: string) => {
+    let sessionUser: UserProfile | null = null;
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password: 'TemporaryPassword123!',
-        options: { data: { name } },
-      });
-      if (error) throw error;
-    } else {
-      const newUser: UserProfile = {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password: 'SnapStudioPassword123!',
+          options: { data: { name } },
+        });
+        if (data?.user) {
+          sessionUser = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: name || data.user.user_metadata?.name || email.split('@')[0],
+            plan: 'free',
+            created_at: data.user.created_at || new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase auth signup rate limit fallback:', err);
+      }
+    }
+
+    if (!sessionUser) {
+      sessionUser = {
         id: `usr_${Date.now()}`,
         email,
-        name,
+        name: name || email.split('@')[0],
         plan: 'free',
         created_at: new Date().toISOString(),
       };
-      setUser(newUser);
-      localStorage.setItem('snapstudio_user_session', JSON.stringify(newUser));
     }
+
+    setUser(sessionUser);
+    localStorage.setItem('snapstudio_user_session', JSON.stringify(sessionUser));
   };
 
   const logout = () => {

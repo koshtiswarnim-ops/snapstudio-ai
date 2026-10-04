@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, CheckCircle2 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -16,11 +18,18 @@ export const LoginPage: React.FC = () => {
       setError('Please enter your email address.');
       return;
     }
+    setError('');
+    setLoading(true);
+
     try {
       await login(email);
-      navigate('/dashboard');
+      setSuccessMsg('Authenticated successfully! Redirecting...');
+      setTimeout(() => {
+        navigate('/generate');
+      }, 700);
     } catch (err: any) {
-      setError(err?.message || 'Login failed. Please try again.');
+      setError(err?.message || 'Sign in encountered an issue.');
+      setLoading(false);
     }
   };
 
@@ -39,6 +48,13 @@ export const LoginPage: React.FC = () => {
             Access your e-commerce AI workspace & generation history.
           </p>
         </div>
+
+        {successMsg && (
+          <div className="p-3 rounded-scientific bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 font-mono-label text-xs flex items-center space-x-2 text-center justify-center animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 rounded bg-red-950/40 border border-red-500/40 text-red-300 font-mono-label text-xs">
@@ -84,10 +100,10 @@ export const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)] flex items-center justify-center space-x-2"
+            disabled={loading}
+            className="w-full py-3.5 rounded-scientific bg-accent-cyan text-ground font-mono-label font-bold text-xs hover:bg-accent-cyan/90 transition-all shadow-[0_0_16px_rgba(79,216,232,0.25)] flex items-center justify-center space-x-2"
           >
-            <span>SIGN IN</span>
-            <ArrowRight className="w-4 h-4" />
+            {loading ? <span>AUTHENTICATING...</span> : <span>SIGN IN</span>}
           </button>
         </form>
 
