@@ -53,15 +53,6 @@ export const Navbar: React.FC = () => {
                 {link.label}
               </Link>
             ))}
-
-            {/* Quick-Access History Drawer Trigger */}
-            <button
-              onClick={() => setHistoryDrawerOpen(true)}
-              className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan/50 text-ink-secondary hover:text-accent-cyan font-mono-label text-[10px] transition-colors"
-            >
-              <History className="w-3.5 h-3.5 text-accent-cyan" />
-              <span>HISTORY PANEL</span>
-            </button>
           </nav>
 
           {/* Right Action / Auth Status */}
@@ -165,17 +156,6 @@ export const Navbar: React.FC = () => {
                   {link.label}
                 </Link>
               ))}
-
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  setHistoryDrawerOpen(true);
-                }}
-                className="flex items-center space-x-2 font-mono-label text-xs text-accent-cyan py-1"
-              >
-                <History className="w-4 h-4 text-accent-cyan" />
-                <span>OPEN HISTORY PANEL</span>
-              </button>
             </nav>
             <div className="pt-3 border-t border-hairline flex flex-col space-y-3">
               {user ? (
