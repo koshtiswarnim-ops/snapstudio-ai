@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Upload, Sparkles, Image as ImageIcon, Check, AlertTriangle, Download, RefreshCw, Layers, ArrowLeft } from 'lucide-react';
+import { Upload, Sparkles, Image as ImageIcon, Check, AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCredits } from '../context/CreditContext';
 import { BackgroundStyle, AspectRatio, QualityMode, GenerationStatus, GenerationRecord } from '../types';
