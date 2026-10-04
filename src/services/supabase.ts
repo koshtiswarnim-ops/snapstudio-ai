@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { UserProfile, UserCredits, GenerationRecord } from '../types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xgmbdttczbcoyvuzjcxk.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_GnkudypuZ0H7-59MXoibPg_9dbQdXnj';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('YOUR_'));
 
@@ -10,7 +10,7 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Mock storage key helpers for seamless client-side experience when Supabase is unconfigured
+// Storage key helpers for local state fallback
 const LOCAL_STORAGE_KEY_USER = 'snapstudio_user_session';
 const LOCAL_STORAGE_KEY_CREDITS = 'snapstudio_user_credits';
 const LOCAL_STORAGE_KEY_GENERATIONS = 'snapstudio_user_generations';
@@ -101,4 +101,65 @@ export const saveMockGenerations = (gens: GenerationRecord[]) => {
 
 export const saveMockCredits = (credits: UserCredits) => {
   localStorage.setItem(LOCAL_STORAGE_KEY_CREDITS, JSON.stringify(credits));
+};
+
+/**
+ * Persists a new generation record to Supabase Database (public.generations table).
+ */
+export const saveGenerationRecordToSupabase = async (record: GenerationRecord): Promise<void> => {
+  // 1. Update local cache
+  const existing = getInitialMockGenerations();
+  saveMockGenerations([record, ...existing]);
+
+  // 2. Persist to Supabase Database
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const payload: Record<string, any> = {
+        original_image_url: record.original_image_url,
+        generated_image_url: record.generated_image_url,
+        selected_style: record.selected_style,
+        aspect_ratio: record.aspect_ratio,
+        quality: record.quality,
+        status: record.status,
+        created_at: record.created_at,
+        completed_at: record.completed_at,
+      };
+
+      // Only attach valid UUID user_id if logged in via Supabase Auth
+      if (record.user_id && !record.user_id.startsWith('usr_')) {
+        payload.user_id = record.user_id;
+      }
+
+      const { data, error } = await supabase.from('generations').insert([payload]).select();
+      if (error) {
+        console.warn('Supabase DB Insert notice:', error.message);
+      } else {
+        console.log('Saved generation details to Supabase backend successfully!', data);
+      }
+    } catch (err) {
+      console.warn('Failed to save generation record to Supabase:', err);
+    }
+  }
+};
+
+/**
+ * Fetches user generations from Supabase backend or local cache.
+ */
+export const fetchGenerationsFromSupabase = async (userId?: string): Promise<GenerationRecord[]> => {
+  const localList = getInitialMockGenerations();
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('generations').select('*').order('created_at', { ascending: false });
+      if (userId && !userId.startsWith('usr_')) {
+        query = query.eq('user_id', userId);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data as GenerationRecord[];
+      }
+    } catch (err) {
+      console.warn('Supabase DB Fetch error:', err);
+    }
+  }
+  return localList;
 };

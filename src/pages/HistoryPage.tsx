@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { History, Download, RefreshCw, Filter, Search, Image as ImageIcon } from 'lucide-react';
-import { getInitialMockGenerations } from '../services/supabase';
+import { fetchGenerationsFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
-import { BackgroundStyle } from '../types';
+import { BackgroundStyle, GenerationRecord } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 export const HistoryPage: React.FC = () => {
-  const generations = getInitialMockGenerations();
+  const { user } = useAuth();
+  const [generations, setGenerations] = useState<GenerationRecord[]>([]);
   const [filterStyle, setFilterStyle] = useState<string>('all');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await fetchGenerationsFromSupabase(user?.id);
+      setGenerations(data);
+    }
+    loadData();
+  }, [user?.id]);
 
   const filteredGenerations = generations.filter((g) => {
     if (filterStyle === 'all') return true;

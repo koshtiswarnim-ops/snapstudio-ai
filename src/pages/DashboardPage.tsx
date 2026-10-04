@@ -1,15 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, CreditCard, Image as ImageIcon, Download, ArrowUpRight, History, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCredits } from '../context/CreditContext';
-import { getInitialMockGenerations } from '../services/supabase';
+import { fetchGenerationsFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
+import { GenerationRecord } from '../types';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { availableCredits, totalUsed } = useCredits();
-  const generations = getInitialMockGenerations();
+  const [generations, setGenerations] = useState<GenerationRecord[]>([]);
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await fetchGenerationsFromSupabase(user?.id);
+      setGenerations(data);
+    }
+    loadData();
+  }, [user?.id]);
 
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 bg-ground text-ink max-w-7xl mx-auto space-y-8">

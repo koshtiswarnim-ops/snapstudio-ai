@@ -7,7 +7,7 @@ import { BackgroundStyle, AspectRatio, QualityMode, GenerationStatus, Generation
 import { triggerAIGeneration } from '../services/n8n';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { StatusBadge } from '../components/StatusBadge';
-import { saveMockGenerations, getInitialMockGenerations } from '../services/supabase';
+import { saveGenerationRecordToSupabase } from '../services/supabase';
 
 const BACKGROUND_STYLES: { id: BackgroundStyle; name: string; desc: string; tag: string }[] = [
   { id: 'clean-white', name: 'Clean White', desc: 'Compliant 100% pure white backdrop for Amazon & Flipkart', tag: 'AMAZON SPEC' },
@@ -111,7 +111,7 @@ export const GeneratePage: React.FC = () => {
       setResultImage(result.generatedImageUrl);
       setStatus('completed');
 
-      // Save to local history state
+      // Save to history state & Supabase backend database
       const newRecord: GenerationRecord = {
         id: result.generationId || `gen_${Date.now()}`,
         user_id: user?.id || 'usr_guest',
@@ -124,8 +124,7 @@ export const GeneratePage: React.FC = () => {
         created_at: new Date().toISOString(),
         completed_at: new Date().toISOString(),
       };
-      const existing = getInitialMockGenerations();
-      saveMockGenerations([newRecord, ...existing]);
+      await saveGenerationRecordToSupabase(newRecord);
     } else {
       setStatus('failed');
       setErrorMessage(result.error || 'Generation failed. Please try again.');
