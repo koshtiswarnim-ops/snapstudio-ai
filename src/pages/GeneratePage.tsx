@@ -152,7 +152,7 @@ export const GeneratePage: React.FC = () => {
       // Save to history state & Supabase backend database
       const newRecord: GenerationRecord = {
         id: result.generationId || `gen_${Date.now()}`,
-        user_id: user?.id || 'usr_guest',
+        user_id: user?.email || user?.id || 'usr_guest',
         original_image_url: originalPreviewUrl,
         generated_image_url: result.generatedImageUrl,
         selected_style: selectedStyle,
@@ -162,7 +162,7 @@ export const GeneratePage: React.FC = () => {
         created_at: new Date().toISOString(),
         completed_at: new Date().toISOString(),
       };
-      await saveGenerationRecordToSupabase(newRecord);
+      await saveGenerationRecordToSupabase(newRecord, user?.email || user?.id);
     } else {
       setStatus('failed');
       setErrorMessage(result.error || 'Generation failed. Please try again.');

@@ -24,8 +24,8 @@ export const CreditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
 
   useEffect(() => {
-    if (user?.id) {
-      const initial = getInitialMockCredits(user.id);
+    if (user) {
+      const initial = getInitialMockCredits(user);
       setCredits(initial);
     } else {
       setCredits({
@@ -36,7 +36,7 @@ export const CreditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updated_at: new Date().toISOString(),
       });
     }
-  }, [user?.id]);
+  }, [user]);
 
   const deductCredit = (): boolean => {
     if (credits.available_credits < 1) return false;

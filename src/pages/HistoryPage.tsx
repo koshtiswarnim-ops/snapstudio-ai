@@ -16,11 +16,15 @@ export const HistoryPage: React.FC = () => {
 
   useEffect(() => {
     async function loadData() {
-      const data = await fetchGenerationsFromSupabase(user?.id);
-      setGenerations(data);
+      if (user) {
+        const data = await fetchGenerationsFromSupabase(user);
+        setGenerations(data);
+      } else {
+        setGenerations([]);
+      }
     }
     loadData();
-  }, [user?.id]);
+  }, [user]);
 
   const filteredGenerations = generations.filter((g) => {
     const matchesStyle = filterStyle === 'all' || g.selected_style === filterStyle;
