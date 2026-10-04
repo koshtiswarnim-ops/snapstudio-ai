@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { History, Download, RefreshCw, Filter, Search, Image as ImageIcon } from 'lucide-react';
-import { fetchGenerationsFromSupabase } from '../services/supabase';
+import { History, Download, RefreshCw, Filter, Search, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { fetchGenerationsFromSupabase, deleteGenerationRecordFromSupabase, clearAllGenerationsFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
 import { BackgroundStyle, GenerationRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +12,8 @@ export const HistoryPage: React.FC = () => {
   const [generations, setGenerations] = useState<GenerationRecord[]>([]);
   const [filterStyle, setFilterStyle] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showConfirmClearAll, setShowConfirmClearAll] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +27,34 @@ export const HistoryPage: React.FC = () => {
     }
     loadData();
   }, [user]);
+
+  const handleDeleteRecord = async (recordId: string) => {
+    if (deletingId !== recordId) {
+      setDeletingId(recordId);
+      setTimeout(() => {
+        setDeletingId((current) => (current === recordId ? null : current));
+      }, 4000);
+      return;
+    }
+
+    // Confirmed delete
+    setGenerations((prev) => prev.filter((g) => g.id !== recordId));
+    setDeletingId(null);
+    await deleteGenerationRecordFromSupabase(recordId, user);
+  };
+
+  const handleClearAll = async () => {
+    if (!showConfirmClearAll) {
+      setShowConfirmClearAll(true);
+      setTimeout(() => setShowConfirmClearAll(false), 5000);
+      return;
+    }
+
+    // Confirmed clear all
+    setGenerations([]);
+    setShowConfirmClearAll(false);
+    await clearAllGenerationsFromSupabase(user);
+  };
 
   const filteredGenerations = generations.filter((g) => {
     const matchesStyle = filterStyle === 'all' || g.selected_style === filterStyle;
@@ -49,7 +79,7 @@ export const HistoryPage: React.FC = () => {
           </h1>
         </div>
 
-        {/* Filter Pills & Search */}
+        {/* Filter Pills, Search & Clear All */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-ink-muted" />
@@ -81,6 +111,21 @@ export const HistoryPage: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {generations.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className={`px-3 py-1.5 rounded font-mono-label text-[10px] flex items-center space-x-1 transition-all shrink-0 border ${
+                showConfirmClearAll
+                  ? 'bg-red-600 text-white border-red-500 font-bold animate-pulse'
+                  : 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+              }`}
+              title="Clear all generated history"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>{showConfirmClearAll ? 'CONFIRM CLEAR ALL?' : 'CLEAR ALL'}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -138,6 +183,19 @@ export const HistoryPage: React.FC = () => {
                 </span>
 
                 <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleDeleteRecord(item.id)}
+                    className={`px-2 py-1 rounded border transition-colors flex items-center space-x-1 ${
+                      deletingId === item.id
+                        ? 'bg-red-500/20 border-red-500 text-red-300 font-bold'
+                        : 'bg-ground-tertiary border-hairline hover:border-red-500/50 text-ink-secondary hover:text-red-400'
+                    }`}
+                    title="Delete image history"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {deletingId === item.id && <span className="text-[9px]">SURE?</span>}
+                  </button>
+
                   <button
                     onClick={() => navigate('/generate')}
                     className="p-1.5 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan text-ink-secondary hover:text-accent-cyan"

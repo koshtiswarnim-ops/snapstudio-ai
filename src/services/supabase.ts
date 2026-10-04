@@ -211,3 +211,69 @@ export const fetchGenerationsFromSupabase = async (userOrEmail?: string | UserPr
 
   return localList;
 };
+
+/**
+ * Deletes a single generation record from local storage and Supabase Database.
+ */
+export const deleteGenerationRecordFromSupabase = async (
+  recordId: string,
+  userOrEmail?: string | UserProfile | null
+): Promise<void> => {
+  if (!userOrEmail) return;
+  const accountKey = normalizeAccountKey(userOrEmail);
+
+  // 1. Remove from local storage cache
+  if (accountKey !== 'acc_guest') {
+    const existing = getInitialMockGenerations(accountKey);
+    const updated = existing.filter((r) => r.id !== recordId);
+    saveMockGenerations(accountKey, updated);
+
+    // Also cleanup legacy storage key if present
+    const legacy = localStorage.getItem('snapstudio_user_generations');
+    if (legacy) {
+      try {
+        const legacyList: GenerationRecord[] = JSON.parse(legacy);
+        const filteredLegacy = legacyList.filter((r) => r.id !== recordId);
+        localStorage.setItem('snapstudio_user_generations', JSON.stringify(filteredLegacy));
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  // 2. Delete from Supabase Database
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('generations').delete().eq('id', recordId);
+      if (error) {
+        console.warn('Supabase DB Delete notice:', error.message);
+      } else {
+        console.log('Successfully deleted generation record from Supabase:', recordId);
+      }
+    } catch (err) {
+      console.warn('Failed to delete generation record from Supabase:', err);
+    }
+  }
+};
+
+/**
+ * Clears all generation records for the specified user account.
+ */
+export const clearAllGenerationsFromSupabase = async (
+  userOrEmail?: string | UserProfile | null
+): Promise<void> => {
+  if (!userOrEmail) return;
+  const accountKey = normalizeAccountKey(userOrEmail);
+
+  if (accountKey !== 'acc_guest') {
+    saveMockGenerations(accountKey, []);
+    localStorage.removeItem('snapstudio_user_generations');
+  }
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const accountId = typeof userOrEmail === 'string' ? userOrEmail : userOrEmail.id;
+      await supabase.from('generations').delete().or(`user_id.eq.${accountKey},user_id.eq.${accountId}`);
+    } catch (err) {
+      console.warn('Failed to clear all generation records in Supabase:', err);
+    }
+  }
+};

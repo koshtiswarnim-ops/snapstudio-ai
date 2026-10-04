@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, CreditCard, Image as ImageIcon, Download, ArrowUpRight, History, Zap } from 'lucide-react';
+import { Sparkles, CreditCard, Image as ImageIcon, Download, ArrowUpRight, History, Zap, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCredits } from '../context/CreditContext';
-import { fetchGenerationsFromSupabase } from '../services/supabase';
+import { fetchGenerationsFromSupabase, deleteGenerationRecordFromSupabase } from '../services/supabase';
 import { StatusBadge } from '../components/StatusBadge';
 import { GenerationRecord } from '../types';
 import { downloadImageFile } from '../utils/download';
@@ -133,13 +133,26 @@ export const DashboardPage: React.FC = () => {
                   })}
                 </div>
 
-                <button
-                  onClick={() => downloadImageFile(gen.generated_image_url || gen.original_image_url, `snapstudio_${gen.selected_style}_${gen.id}.jpg`)}
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan text-ink-secondary hover:text-accent-cyan font-mono-label text-[10px] transition-colors"
-                >
-                  <Download className="w-3 h-3" />
-                  <span>DOWNLOAD</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={async () => {
+                      setGenerations((prev) => prev.filter((g) => g.id !== gen.id));
+                      await deleteGenerationRecordFromSupabase(gen.id, user);
+                    }}
+                    className="p-1.5 rounded bg-ground-tertiary border border-hairline hover:border-red-500/50 text-ink-secondary hover:text-red-400"
+                    title="Delete image history"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    onClick={() => downloadImageFile(gen.generated_image_url || gen.original_image_url, `snapstudio_${gen.selected_style}_${gen.id}.jpg`)}
+                    className="flex items-center space-x-1 px-3 py-1.5 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan text-ink-secondary hover:text-accent-cyan font-mono-label text-[10px] transition-colors"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>DOWNLOAD</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, History, Download, RefreshCw, Eye, Sparkles, Filter, ExternalLink } from 'lucide-react';
-import { fetchGenerationsFromSupabase } from '../services/supabase';
+import { X, History, Download, RefreshCw, Eye, Sparkles, Filter, ExternalLink, Trash2 } from 'lucide-react';
+import { fetchGenerationsFromSupabase, deleteGenerationRecordFromSupabase } from '../services/supabase';
 import { GenerationRecord } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { StatusBadge } from './StatusBadge';
@@ -159,7 +159,17 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                       })}
                     </span>
 
-                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={async () => {
+                          setGenerations((prev) => prev.filter((g) => g.id !== item.id));
+                          await deleteGenerationRecordFromSupabase(item.id, user);
+                        }}
+                        className="p-1.5 rounded bg-ground-tertiary border border-hairline hover:border-red-500/50 text-ink-secondary hover:text-red-400"
+                        title="Delete image history"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+
                       <button
                         onClick={() => setSelectedInspectRecord(item)}
                         className="px-2.5 py-1 rounded bg-ground-tertiary border border-hairline hover:border-accent-cyan text-ink-secondary hover:text-accent-cyan flex items-center space-x-1"
@@ -176,7 +186,6 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                         <Download className="w-3 h-3" />
                         <span>DOWNLOAD</span>
                       </button>
-                    </div>
                   </div>
                 </div>
               ))}
