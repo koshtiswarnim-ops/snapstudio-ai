@@ -12,6 +12,13 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
 
 // Storage key helpers for user-isolated local state
 const LOCAL_STORAGE_KEY_USER = 'snapstudio_user_session';
+
+export const createDeterministicUserId = (email: string): string => {
+  if (!email) return 'usr_guest';
+  const cleanEmail = email.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+  return `usr_${cleanEmail}`;
+};
+
 export const getUserCreditsStorageKey = (userId: string) => `snapstudio_credits_${userId}`;
 export const getUserGenerationsStorageKey = (userId: string) => `snapstudio_generations_${userId}`;
 
@@ -32,7 +39,7 @@ export const getInitialMockCredits = (userId: string): UserCredits => {
   if (stored) {
     try { return JSON.parse(stored); } catch (e) { /* ignore */ }
   }
-  // New account initial credits setup: 5 Initial Free Credits
+  // New account initial credits setup: 5 Initial Free Credits per distinct account
   const defaultCredits: UserCredits = {
     id: `crd_${userId}`,
     user_id: userId,

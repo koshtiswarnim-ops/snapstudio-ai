@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserProfile } from '../types';
-import { supabase, isSupabaseConfigured, getInitialMockUser } from '../services/supabase';
+import { supabase, isSupabaseConfigured, getInitialMockUser, createDeterministicUserId } from '../services/supabase';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string) => {
     let sessionUser: UserProfile | null = null;
+    const deterministicId = createDeterministicUserId(email);
+
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithOtp({ email });
@@ -81,8 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!sessionUser) {
       sessionUser = {
-        id: `usr_${Date.now()}`,
-        email,
+        id: deterministicId,
+        email: email.toLowerCase().trim(),
         name: email.split('@')[0],
         plan: 'pro',
         created_at: new Date().toISOString(),
@@ -95,6 +97,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (email: string, name: string) => {
     let sessionUser: UserProfile | null = null;
+    const deterministicId = createDeterministicUserId(email);
+
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -118,8 +122,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!sessionUser) {
       sessionUser = {
-        id: `usr_${Date.now()}`,
-        email,
+        id: deterministicId,
+        email: email.toLowerCase().trim(),
         name: name || email.split('@')[0],
         plan: 'free',
         created_at: new Date().toISOString(),
