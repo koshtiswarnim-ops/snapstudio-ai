@@ -10,10 +10,10 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Storage key helpers for local state fallback
+// Storage key helpers for user-isolated local state
 const LOCAL_STORAGE_KEY_USER = 'snapstudio_user_session';
-const LOCAL_STORAGE_KEY_CREDITS = 'snapstudio_user_credits';
-const LOCAL_STORAGE_KEY_GENERATIONS = 'snapstudio_user_generations';
+export const getUserCreditsStorageKey = (userId: string) => `snapstudio_credits_${userId}`;
+export const getUserGenerationsStorageKey = (userId: string) => `snapstudio_generations_${userId}`;
 
 export const getInitialMockUser = (): UserProfile | null => {
   const stored = localStorage.getItem(LOCAL_STORAGE_KEY_USER);
@@ -24,25 +24,38 @@ export const getInitialMockUser = (): UserProfile | null => {
 };
 
 export const getInitialMockCredits = (userId: string): UserCredits => {
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY_CREDITS);
+  if (!userId) {
+    return { id: 'crd_guest', user_id: 'guest', available_credits: 0, total_used: 0, updated_at: new Date().toISOString() };
+  }
+  const key = getUserCreditsStorageKey(userId);
+  const stored = localStorage.getItem(key);
   if (stored) {
     try { return JSON.parse(stored); } catch (e) { /* ignore */ }
   }
+  // New account initial credits setup: 5 Initial Free Credits
   const defaultCredits: UserCredits = {
-    id: 'crd_demo_102',
+    id: `crd_${userId}`,
     user_id: userId,
-    available_credits: 24,
-    total_used: 18,
+    available_credits: 5,
+    total_used: 0,
     updated_at: new Date().toISOString(),
   };
-  localStorage.setItem(LOCAL_STORAGE_KEY_CREDITS, JSON.stringify(defaultCredits));
+  localStorage.setItem(key, JSON.stringify(defaultCredits));
   return defaultCredits;
+};
+
+export const saveMockCredits = (credits: UserCredits) => {
+  if (credits.user_id) {
+    localStorage.setItem(getUserCreditsStorageKey(credits.user_id), JSON.stringify(credits));
+  }
 };
 
 const DEFAULT_FALLBACK_ORIGINAL = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
 
-export const getInitialMockGenerations = (): GenerationRecord[] => {
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY_GENERATIONS);
+export const getInitialMockGenerations = (userId?: string): GenerationRecord[] => {
+  if (!userId) return [];
+  const key = getUserGenerationsStorageKey(userId);
+  const stored = localStorage.getItem(key);
   if (stored) {
     try {
       const parsed: GenerationRecord[] = JSON.parse(stored);
@@ -57,63 +70,24 @@ export const getInitialMockGenerations = (): GenerationRecord[] => {
       return sanitized;
     } catch (e) { /* ignore */ }
   }
-  const samples: GenerationRecord[] = [
-    {
-      id: 'gen_9921',
-      user_id: 'usr_demo_8829',
-      original_image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
-      generated_image_url: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&auto=format&fit=crop&q=80',
-      selected_style: 'minimal-premium',
-      aspect_ratio: '1:1',
-      quality: 'high',
-      status: 'completed',
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-      completed_at: new Date(Date.now() - 3600000 * 4 + 4000).toISOString(),
-    },
-    {
-      id: 'gen_9920',
-      user_id: 'usr_demo_8829',
-      original_image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80',
-      generated_image_url: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&auto=format&fit=crop&q=80',
-      selected_style: 'soft-studio',
-      aspect_ratio: '4:5',
-      quality: 'standard',
-      status: 'completed',
-      created_at: new Date(Date.now() - 3600000 * 26).toISOString(),
-      completed_at: new Date(Date.now() - 3600000 * 26 + 3500).toISOString(),
-    },
-    {
-      id: 'gen_9919',
-      user_id: 'usr_demo_8829',
-      original_image_url: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=80',
-      generated_image_url: 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?w=600&auto=format&fit=crop&q=80',
-      selected_style: 'clean-white',
-      aspect_ratio: '1:1',
-      quality: 'high',
-      status: 'completed',
-      created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-      completed_at: new Date(Date.now() - 3600000 * 72 + 5000).toISOString(),
-    }
-  ];
-  localStorage.setItem(LOCAL_STORAGE_KEY_GENERATIONS, JSON.stringify(samples));
-  return samples;
+  return [];
 };
 
-export const saveMockGenerations = (gens: GenerationRecord[]) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY_GENERATIONS, JSON.stringify(gens));
-};
-
-export const saveMockCredits = (credits: UserCredits) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY_CREDITS, JSON.stringify(credits));
+export const saveMockGenerations = (userId: string, gens: GenerationRecord[]) => {
+  if (userId) {
+    localStorage.setItem(getUserGenerationsStorageKey(userId), JSON.stringify(gens));
+  }
 };
 
 /**
- * Persists a new generation record to Supabase Database (public.generations table).
+ * Persists a new generation record to Supabase Database (public.generations table) for specific user_id.
  */
 export const saveGenerationRecordToSupabase = async (record: GenerationRecord): Promise<void> => {
-  // 1. Update local cache
-  const existing = getInitialMockGenerations();
-  saveMockGenerations([record, ...existing]);
+  // 1. Update user-isolated local cache
+  if (record.user_id) {
+    const existing = getInitialMockGenerations(record.user_id);
+    saveMockGenerations(record.user_id, [record, ...existing]);
+  }
 
   // 2. Persist to Supabase Database
   if (isSupabaseConfigured && supabase) {
@@ -129,8 +103,7 @@ export const saveGenerationRecordToSupabase = async (record: GenerationRecord): 
         completed_at: record.completed_at,
       };
 
-      // Only attach valid UUID user_id if logged in via Supabase Auth
-      if (record.user_id && !record.user_id.startsWith('usr_')) {
+      if (record.user_id) {
         payload.user_id = record.user_id;
       }
 
@@ -147,18 +120,19 @@ export const saveGenerationRecordToSupabase = async (record: GenerationRecord): 
 };
 
 /**
- * Fetches user generations from Supabase backend or local cache.
+ * Fetches user generations strictly isolated to the logged-in user_id from Supabase backend.
  */
 export const fetchGenerationsFromSupabase = async (userId?: string): Promise<GenerationRecord[]> => {
-  const localList = getInitialMockGenerations();
+  if (!userId) return [];
+  const localList = getInitialMockGenerations(userId);
+
   if (isSupabaseConfigured && supabase) {
     try {
       let query = supabase.from('generations').select('*').order('created_at', { ascending: false });
-      if (userId && !userId.startsWith('usr_')) {
-        query = query.eq('user_id', userId);
-      }
+      query = query.eq('user_id', userId);
+
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const sanitized = data.map((item: any) => ({
           ...item,
           original_image_url:

@@ -16,10 +16,10 @@ const CreditContext = createContext<CreditContextType | undefined>(undefined);
 export const CreditProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [credits, setCredits] = useState<UserCredits>({
-    id: 'crd_default',
+    id: 'crd_guest',
     user_id: user?.id || 'guest',
-    available_credits: 24,
-    total_used: 18,
+    available_credits: 0,
+    total_used: 0,
     updated_at: new Date().toISOString(),
   });
 
@@ -27,6 +27,14 @@ export const CreditProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (user?.id) {
       const initial = getInitialMockCredits(user.id);
       setCredits(initial);
+    } else {
+      setCredits({
+        id: 'crd_guest',
+        user_id: 'guest',
+        available_credits: 0,
+        total_used: 0,
+        updated_at: new Date().toISOString(),
+      });
     }
   }, [user?.id]);
 
