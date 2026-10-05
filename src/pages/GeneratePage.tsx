@@ -4,7 +4,7 @@ import { Upload, Sparkles, Image as ImageIcon, Check, AlertTriangle, RefreshCw, 
 import { useAuth } from '../context/AuthContext';
 import { useCredits } from '../context/CreditContext';
 import { BackgroundStyle, AspectRatio, QualityMode, GenerationStatus, GenerationRecord } from '../types';
-import { triggerAIGeneration } from '../services/n8n';
+import { triggerFalAIGeneration } from '../services/fal';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { StatusBadge } from '../components/StatusBadge';
 import { AuthRequiredModal } from '../components/AuthRequiredModal';
@@ -20,7 +20,7 @@ const BACKGROUND_STYLES: { id: BackgroundStyle; name: string; desc: string; tag:
 
 export const GeneratePage: React.FC = () => {
   const { user } = useAuth();
-  const { availableCredits, deductCredit, hasSufficientCredits } = useCredits();
+  const { availableCredits, deductCredit, addCredits, hasSufficientCredits } = useCredits();
   const navigate = useNavigate();
 
   // Workspace Form State
@@ -119,7 +119,7 @@ export const GeneratePage: React.FC = () => {
     setErrorMessage('');
     setStatus('uploading');
     setProgressPercent(10);
-    setProgressMsg('Uploading image to secure temporary storage...');
+    setProgressMsg('Uploading product image to serverless pipeline...');
 
     // Safely deduct 1 credit
     const deducted = deductCredit();
@@ -131,7 +131,7 @@ export const GeneratePage: React.FC = () => {
 
     setStatus('ai-generating');
 
-    const result = await triggerAIGeneration(
+    const result = await triggerFalAIGeneration(
       {
         userId: user?.id || 'usr_guest',
         originalImageUrl: originalPreviewUrl,
@@ -151,7 +151,7 @@ export const GeneratePage: React.FC = () => {
 
       // Save to history state & Supabase backend database
       const newRecord: GenerationRecord = {
-        id: result.generationId || `gen_${Date.now()}`,
+        id: result.requestId || `gen_${Date.now()}`,
         user_id: user?.email || user?.id || 'usr_guest',
         original_image_url: originalPreviewUrl,
         generated_image_url: result.generatedImageUrl,
@@ -164,8 +164,10 @@ export const GeneratePage: React.FC = () => {
       };
       await saveGenerationRecordToSupabase(newRecord, user?.email || user?.id);
     } else {
+      // Auto-refund deducted credit upon generation failure
+      addCredits(1);
       setStatus('failed');
-      setErrorMessage(result.error || 'Generation failed. Please try again.');
+      setErrorMessage(result.error || 'Generation failed. Your credit has been refunded.');
     }
   };
 
