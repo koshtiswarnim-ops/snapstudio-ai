@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CreditProvider } from './context/CreditContext';
@@ -19,8 +19,12 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
+import { verifySupabaseConnection } from './services/supabase';
 
 export function App() {
+  useEffect(() => {
+    verifySupabaseConnection();
+  }, []);
   return (
     <Router>
       <AuthProvider>

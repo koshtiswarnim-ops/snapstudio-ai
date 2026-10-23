@@ -277,3 +277,140 @@ export const clearAllGenerationsFromSupabase = async (
     }
   }
 };
+
+export interface SupabaseVerificationResult {
+  status: 'SUCCESS' | 'FAILED';
+  configured: boolean;
+  endpoint: string;
+  tableChecked: string;
+  message: string;
+  details?: Record<string, any>;
+}
+
+/**
+ * Performs a safe, read-only verification check against an existing table in Supabase ('generations').
+ * Prints a clear SUCCESS or FAILED banner in the browser console without exposing API secrets.
+ */
+export const verifySupabaseConnection = async (): Promise<SupabaseVerificationResult> => {
+  if (!isSupabaseConfigured || !supabase) {
+    const res: SupabaseVerificationResult = {
+      status: 'FAILED',
+      configured: false,
+      endpoint: supabaseUrl || 'NOT_CONFIGURED',
+      tableChecked: 'generations',
+      message: 'Supabase client is not configured. Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.',
+    };
+    console.error(
+      '%c[Supabase Connection Test] FAILED',
+      'color: #EF4444; font-weight: bold; font-size: 14px;',
+      `\nReason: ${res.message}\nEndpoint: ${res.endpoint}`
+    );
+    return res;
+  }
+
+  // Safe endpoint URL display (do not expose keys or query params)
+  let safeEndpoint = '';
+  try {
+    safeEndpoint = new URL(supabaseUrl).origin;
+  } catch {
+    safeEndpoint = 'Supabase Host';
+  }
+
+  try {
+    // Run a real read-only query against the existing 'generations' table (defined in schema.sql)
+    const { data, error, status } = await supabase
+      .from('generations')
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      const errMsg = error.message || 'Unknown Supabase error';
+      let diagnosis = '';
+
+      if (errMsg.includes('fetch failed') || errMsg.includes('ENOTFOUND') || status === 0) {
+        diagnosis = `Cannot reach Supabase host '${safeEndpoint}'. The project may be paused due to inactivity, deleted, or the domain has changed. Check your Supabase Dashboard to unpause or verify the project URL.`;
+      } else if (status === 404 || errMsg.includes('does not exist') || error.code === '42P01') {
+        diagnosis = `Host reached, but table 'generations' does not exist in the database yet. Run 'supabase/schema.sql' in your Supabase SQL Editor.`;
+      } else if (status === 401 || errMsg.includes('Invalid API key') || errMsg.includes('JWT')) {
+        diagnosis = `Host reached, but authentication was rejected. VITE_SUPABASE_ANON_KEY is invalid or expired. Check Project Settings -> API.`;
+      } else if (status === 403 || errMsg.includes('row-level security') || errMsg.includes('permission denied')) {
+        // Table exists and RLS is active: backend connection is successful!
+        const successRes: SupabaseVerificationResult = {
+          status: 'SUCCESS',
+          configured: true,
+          endpoint: safeEndpoint,
+          tableChecked: 'generations',
+          message: `Connected to Supabase successfully! Table 'generations' exists and Row-Level Security (RLS) is active.`,
+          details: { httpStatus: status, rlsActive: true },
+        };
+        console.log(
+          '%c[Supabase Connection Test] SUCCESS',
+          'color: #10B981; font-weight: bold; font-size: 14px;',
+          `\nStatus: SUCCESS\nEndpoint: ${safeEndpoint}\nTable: generations\nMessage: ${successRes.message}`
+        );
+        return successRes;
+      } else {
+        diagnosis = `Supabase responded with error (Code: ${error.code || status}): ${errMsg}`;
+      }
+
+      const failRes: SupabaseVerificationResult = {
+        status: 'FAILED',
+        configured: true,
+        endpoint: safeEndpoint,
+        tableChecked: 'generations',
+        message: diagnosis,
+        details: { code: error.code, httpStatus: status, rawMessage: errMsg },
+      };
+
+      console.error(
+        '%c[Supabase Connection Test] FAILED',
+        'color: #EF4444; font-weight: bold; font-size: 14px;',
+        `\nStatus: FAILED\nEndpoint: ${safeEndpoint}\nTable: generations\nMessage: ${diagnosis}`
+      );
+      return failRes;
+    }
+
+    const successRes: SupabaseVerificationResult = {
+      status: 'SUCCESS',
+      configured: true,
+      endpoint: safeEndpoint,
+      tableChecked: 'generations',
+      message: `Connected to Supabase backend successfully! Read-only query to table 'generations' succeeded (Records found: ${data?.length ?? 0}).`,
+      details: { recordCount: data?.length ?? 0, httpStatus: status },
+    };
+
+    console.log(
+      '%c[Supabase Connection Test] SUCCESS',
+      'color: #10B981; font-weight: bold; font-size: 14px;',
+      `\nStatus: SUCCESS\nEndpoint: ${safeEndpoint}\nTable: generations\nMessage: ${successRes.message}`
+    );
+    return successRes;
+  } catch (err: any) {
+    const rawErr = err?.message || String(err);
+    const diagnosis = rawErr.includes('ENOTFOUND') || rawErr.includes('fetch failed')
+      ? `Cannot reach Supabase host '${safeEndpoint}'. The project may be paused due to inactivity, deleted, or the domain has changed. Check your Supabase Dashboard to unpause or verify the project URL.`
+      : `Connection check failed: ${rawErr}`;
+
+    const failRes: SupabaseVerificationResult = {
+      status: 'FAILED',
+      configured: true,
+      endpoint: safeEndpoint,
+      tableChecked: 'generations',
+      message: diagnosis,
+      details: { error: rawErr },
+    };
+
+    console.error(
+      '%c[Supabase Connection Test] FAILED',
+      'color: #EF4444; font-weight: bold; font-size: 14px;',
+      `\nStatus: FAILED\nEndpoint: ${safeEndpoint}\nTable: generations\nMessage: ${diagnosis}`
+    );
+    return failRes;
+  }
+};
+
+// Expose globally for interactive browser console execution: window.verifySupabaseConnection()
+if (typeof window !== 'undefined') {
+  (window as any).verifySupabaseConnection = verifySupabaseConnection;
+}
+
